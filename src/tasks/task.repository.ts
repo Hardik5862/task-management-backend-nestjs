@@ -1,3 +1,4 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { User } from 'src/auth/user.entity';
 import { EntityRepository, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -23,8 +24,12 @@ export class TasksRepository extends Repository<Task> {
       );
     }
 
-    const tasks = query.getMany();
-    return tasks;
+    try {
+      const tasks = await query.getMany();
+      return tasks;
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
@@ -37,7 +42,6 @@ export class TasksRepository extends Repository<Task> {
       user,
     });
     await this.save(task);
-
     return task;
   }
 }
